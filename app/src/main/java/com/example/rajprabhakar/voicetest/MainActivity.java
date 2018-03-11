@@ -3,6 +3,7 @@ package com.example.rajprabhakar.voicetest;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.speech.RecognizerIntent;
+import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -19,6 +20,9 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtSpeechInput;
     private ImageButton btnSpeak;
     private final int REQ_CODE_SPEECH_INPUT = 100;
+    private TextToSpeech tts;
+
+    private String command, reply;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,10 +33,18 @@ public class MainActivity extends AppCompatActivity {
         btnSpeak = findViewById(R.id.btnSpeak);
 
         btnSpeak.setOnClickListener(new View.OnClickListener() {
-
             @Override
             public void onClick(View v) {
                 promptSpeechInput();
+            }
+        });
+
+        tts = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int i) {
+                if (i != TextToSpeech.ERROR) {
+                    tts.setLanguage(Locale.UK);
+                }
             }
         });
     }
@@ -63,11 +75,25 @@ public class MainActivity extends AppCompatActivity {
 
                     ArrayList<String> result = data
                             .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                    txtSpeechInput.setText(result.get(0));
+                    command = result.get(0).toLowerCase();
+                    txtSpeechInput.setText(command);
+                    makeToast(command);
                 }
                 break;
             }
 
         }
+    }
+
+    private void makeToast(String cmd) {
+        if (cmd.contains("ac")) {
+            if (cmd.contains("on")) {
+                reply = "AC turned ON";
+            } else if (cmd.contains("off")) {
+                reply = "AC turned OFF";
+            }
+        }
+        Toast.makeText(getApplicationContext(), reply, Toast.LENGTH_SHORT).show();
+        tts.speak(reply, TextToSpeech.QUEUE_FLUSH, null);
     }
 }
